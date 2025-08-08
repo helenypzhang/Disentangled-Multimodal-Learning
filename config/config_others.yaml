@@ -1,0 +1,106 @@
+# Dataset options
+fixdim: 2500 #for end2end training, not used in others
+label_path: ./data 
+# dataDir: /default/HOME/cambridge/data/data_wxf/ #zhijiang img"/TCGA/Res50_feature_2500_fixdim0_norm" "/TCGA/transcriptomeProfiling_geneExpression"
+dataDir: /home/cbtil2/WSI_proj/data/ # cbtil3: /home/cbtil3/WSI_proj/data/ # cbtil2: /home/cbtil2/WSI_proj/data/
+
+# /home/cbtil2/WSI_proj/data/CPTAC/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/CPTAC/Res50_feature_2500_fixdim0_norm/
+# /home/cbtil2/WSI_proj/data/TCGA/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/TCGA/Res50_feature_2500_fixdim0_norm/
+# /home/cbtil2/WSI_proj/data/IvYGAP/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/IvYGAP/Res50_feature_2500_fixdim0_norm/
+
+dataDir_pyramid: /home/cbtil2/WSI_proj/data/ #/home/zeiler/WSI_proj/data/ #/media/extend_4T/ # /media/extend_4T/TCGA/extract_l0_0.5_256/
+pyramid: 2
+coTraining: True
+
+dataset: TCGA
+checkpoints: "./checkpoints"
+checkpoints_student: "./checkpoints_3fold_student_5e-5_bs8_nobatloss/fold_3_epoch_10_AUC_0.808658_ACC_0.587045_Sens_0.487219_Spec_0.867848_F1_0.480259_.pth" #fold2: #"./checkpoints_3fold_student_5e-5_bs8_nobatloss/fold_2_epoch_10_AUC_0.857077_ACC_0.654613_Sens_0.545781_Spec_0.887420_F1_0.536707_.pth" #fold1: #"./checkpoints_3fold_student_5e-5_bs8_nobatloss/fold_1_epoch_10_AUC_0.863402_ACC_0.675355_Sens_0.588251_Spec_0.891379_F1_0.580543_.pth" 
+checkpoints_teacher: "./checkpoints_3fold_teacher_2e-4_bs4/fold_3_epoch_10_AUC_0.959981_ACC_0.854251_Sens_0.757669_Spec_0.949084_F1_0.753088_.pth" #fold2: #"./checkpoints_3fold_teacher_2e-4_bs4/fold_2_epoch_10_AUC_0.969573_ACC_0.869077_Sens_0.777675_Spec_0.955726_F1_0.778116_.pth" #fold1: #"./checkpoints_3fold_teacher_2e-4_bs4/fold_1_epoch_10_AUC_0.963876_ACC_0.857820_Sens_0.767831_Spec_0.955243_F1_0.753395_.pth" 
+
+printDataSplit: False
+
+# Distributed training options
+nodes: 1
+# gpus: 2
+# visiable_device: "0,1"
+gpus: 2
+visiable_device: "0,1"
+nr: 0
+dataparallel: 0
+workers: 8
+
+# Modality fusion
+fusion_type: "concat" # pathomic_original_pofusion; deform_concat; pathomic_concat_add
+skip: 0
+use_bilinear: 1
+input_size_omic: 431 # gene number
+input_size_omic_tumor: 59
+input_size_omic_immune: 361
+# input_size_path: 512
+input_path_dim: 1024
+path_gate: 1
+omic_gate: 1
+path_dim: 128 #256
+omic_dim: 128
+# path_dim: 512
+# omic_dim: 512
+path_scale: 1
+omic_scale: 1
+mmhid: 128
+# mmhid: 512
+cut_fuse_grad: False
+
+
+# Training options
+reload: False
+seed: 42
+batch_size: 8     #4 for teacher; 8 for student, distillation, deformpathomic; 16
+image_size: [224, 224]
+start_epoch: 0
+epochs: 10 #10
+lr: 1.0e-3 # 1.0e-4 for dis # 5.0e-5 for student # 2.0e-4 for teacher, deformpathomic and others; CMTA: 1.0e-3; MCAT: 2.0e-4; 
+lr_policy: "cosine" #"cosinewithwarmup" # "cosine" for others
+dropout_rate: 0.1
+return_grad: False #MaxNet
+optimizer: "adam" #"adamw" # "adam" for others
+weight_decay: 0.01 # 0.01 for diag2021; 0.1 for survival
+init_type: 'max'
+init_gain: 0.02 
+warmup_epochs: 2
+kfold: 3
+
+
+# Loss options for deformpathomic
+gradient_modulate: True # gradient
+return_vgrid: True # bb loss
+
+# Loss options for multiscale
+multiscale_attention: False
+path_cluster_num: 0.0008  #0.25; 0.0128(32); 0.0032(8); 0.0008(2);
+
+# Loss options for distill
+distill_logits: True
+distill_feature: True
+temperature: 2.0
+
+# Student logits combination
+combination_type: 'average' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_teas: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_stus: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+
+# Model options
+mode: 'path' # 'path' 'omic' 'pathomic' 'pathomic_original' 'mcat' 'cmta' 'deformpathomic' ->(our miccai) 'multiscale' 'teacher' 'student' 'distillation' 'uniteacher'
+attn_dim: 2 # deform
+
+
+# Task for diag2021, grade, subtype
+task_type: "diag2021" #["diag2021", "survival", "grade", "subtype"]
+label_dim: 4 #[4 for "diag2021", 4 for "survival", 3 for "grade", 3 for "subtype"]
+survival_interval: "all" #["uncensored", "all"]
+act_type: 'Sigmoid' # 'LSM'
+
+# Evaluate options
+save4roc: False

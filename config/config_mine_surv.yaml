@@ -1,0 +1,115 @@
+# Dataset options
+fixdim: 2500 #for end2end training, not used in others
+label_path: ./data 
+# dataDir: /default/HOME/cambridge/data/data_wxf/ #zhijiang img"/TCGA/Res50_feature_2500_fixdim0_norm" "/TCGA/transcriptomeProfiling_geneExpression"
+dataDir: /home/cbtil2/WSI_proj/data/ # cbtil3: /home/cbtil3/WSI_proj/data/ # cbtil2: /home/cbtil2/WSI_proj/data/
+
+# /home/cbtil2/WSI_proj/data/CPTAC/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/CPTAC/Res50_feature_2500_fixdim0_norm/
+# /home/cbtil2/WSI_proj/data/TCGA/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/TCGA/Res50_feature_2500_fixdim0_norm/
+# /home/cbtil2/WSI_proj/data/IvYGAP/Res50_feature_2500_fixdim0_norm_20x/
+# /home/cbtil2/WSI_proj/data/IvYGAP/Res50_feature_2500_fixdim0_norm/
+
+dataDir_pyramid: /home/cbtil2/WSI_proj/data/ #/home/zeiler/WSI_proj/data/ #/media/extend_4T/ # /media/extend_4T/TCGA/extract_l0_0.5_256/
+pyramid: 2
+coTraining: True
+external_eval: True # True for CPTAC dataset evaluation
+
+dataset: TCGA
+checkpoints: "./checkpoints"
+checkpoints_student: "./checkpoints_surv_student_2e-4/fold_1_epoch_10_cindex_0.679544_.pth" 
+# fold1: "./checkpoints_surv_student_2e-4/fold_1_epoch_10_cindex_0.679544_.pth" 
+# fold2: "./checkpoints_surv_student_2e-4/fold_2_epoch_10_cindex_0.764205_.pth"
+# fold3: "./checkpoints_surv_student_2e-4/fold_3_epoch_10_cindex_0.775645_.pth" #zeroshot cptac: 0.6012
+
+checkpoints_teacher: "./checkpoints/fold_1_epoch_2_cindex_0.787590_teacher.pth"
+# 10fold: "./checkpoints/fold_1_epoch_2_cindex_0.787590_teacher.pth"
+# fold1: "./checkpoints_surv_teacher_all_coswarm1_e10_104_adam/fold_1_epoch_10_cindex_0.740203_.pth" 
+# fold2: "./checkpoints_surv_teacher_all_e10_coswarm1_adamw/fold_2_epoch_10_cindex_0.801638_.pth" #zeroshot cptac: 0.6518; fting: 57 64 57
+# fold3: "./checkpoints_surv_teacher_all_coswarm1_e2_104_adam/fold_3_epoch_2_cindex_0.782752_.pth" 
+
+
+# Distributed training options
+nodes: 1
+# gpus: 2
+# visiable_device: "0,1"
+gpus: 2
+visiable_device: "0,1"
+nr: 0
+dataparallel: 0
+workers: 8
+
+# Modality fusion
+fusion_type: "concat" # pathomic_original: pofusion; deform: concat; pathomic: concat/add
+skip: 0
+use_bilinear: 1
+input_size_omic: 431 # gene number
+input_size_omic_tumor: 59
+input_size_omic_immune: 361
+# input_size_path: 512
+input_path_dim: 1024
+path_gate: 1
+omic_gate: 1
+path_dim: 128 #256
+omic_dim: 128
+# path_dim: 512
+# omic_dim: 512
+path_scale: 1
+omic_scale: 1
+mmhid: 128
+# mmhid: 512
+cut_fuse_grad: False
+
+
+# Training options
+reload: False ## True for inference
+seed: 42
+batch_size: 16     #4 for teacher, 8 for student and distillation, 16 student infer; 3 for inference(CMTA)
+image_size: [224, 224]
+start_epoch: 0
+epochs: 10 #10
+lr: 2.0e-4 # 1.0e-4 for dis # 2.0e-4 for student # 2.0e-4 for teacher; CMTA: 1.0e-3; MCAT: 2.0e-4; 
+lr_policy: "cosine" #"cosinewithwarmup" #"cosine"
+dropout_rate: 0.01
+return_grad: False #MaxNet
+optimizer: "adam" #"adamw" for dis #"adam"
+weight_decay: 0.1 # 0.01 for diag2021; 0.01 for survival
+init_type: 'max'
+init_gain: 0.02 
+warmup_epochs: 0
+kfold: 3
+
+
+# Loss options for deformpathomic
+return_vgrid: False # bb loss; only for deformpathomic 
+gradient_modulate: True # gradient
+
+# Loss options for multiscale
+multiscale_attention: True # False for student; True for teacher
+path_cluster_num: 0.0008  #0.25; 0.0128(32); 0.0032(8); 0.0008(2);
+
+# Loss options for distill
+distill_logits: True
+distill_feature: True
+temperature: 2.0
+
+# Student logits combination
+combination_type: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_teas: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_stus: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+
+# Model options
+mode: 'pathomic_fg' # 'path' 'omic' 'pathomic' 'pathomic_original' 'pathomic_fg' 'pathomic_ensemble' 'deformpathomic' ->(our) 'mcat' 'cmta' 'multiscale' 'teacher' 'student' 'distillation' 'uniteacher'
+attn_dim: 2 # deform
+
+
+# Task for diag2021, grade, subtype
+task_type: "survival" #["diag2021", "survival", "grade", "subtype"]
+label_dim: 4 #[4 for "diag2021", 4 for "survival", 3 for "grade", 3 for "subtype"]
+survival_interval: "all" #["uncensored", "all"]
+act_type: 'Sigmoid' # 'LSM'
+
+# Evaluate options
+save4roc: False
+printDataSplit: False

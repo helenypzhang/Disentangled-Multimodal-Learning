@@ -1,0 +1,102 @@
+# Dataset options
+fixdim: 2500 #for end2end training, not used in others
+label_path: ./data 
+dataDir: /home/cbtil2/WSI_proj/data/ 
+
+dataDir_pyramid: /home/cbtil2/WSI_proj/data/ 
+pyramid: 2
+
+dataset: TCGA
+checkpoints: "./checkpoints"
+checkpoints_student: "#"
+
+checkpoints_teacher: "#"
+
+# Distributed training options
+nodes: 1
+gpus: 2
+visiable_device: "0,1"
+nr: 0
+dataparallel: 0
+workers: 8
+
+# Modality fusion
+fusion_type: "concat" # pathomic_original_pofusion; deform_concat; pathomic_concat_add
+skip: 0
+use_bilinear: 1
+
+## 0.3_high_var
+input_size_omic: 431 # gene number
+input_size_omic_tumor: 59 #70
+input_size_omic_immune: 361 #372
+
+# input_size_path: 512
+input_path_dim: 1024
+path_gate: 1
+omic_gate: 1
+path_dim: 128 #256
+omic_dim: 128
+# path_dim: 512
+# omic_dim: 512
+path_scale: 1
+omic_scale: 1
+mmhid: 128
+# mmhid: 512
+# cut_fuse_grad: False
+
+
+# Training options
+reload: False
+seed: 42
+batch_size: 4     #4 for teacher, 8 for student and distillation, 16
+image_size: [224, 224]
+start_epoch: 0
+epochs: 10 #10
+lr: 2.0e-4 
+lr_policy: "cosine" #"cosinewithwarmup" #"cosine"
+dropout_rate: 0.1
+return_grad: False #MaxNet
+optimizer: "adamw" #"adam" #"adamw" for teacher
+weight_decay: 0.01 
+init_type: 'max'
+init_gain: 0.02 
+warmup_epochs: 1
+kfold: 3
+
+
+# Loss options for deformpathomic
+return_vgrid: False # bb loss; only for deformpathomic 
+gradient_modulate: True # gradient
+
+# Loss options for multiscale
+multiscale_attention: True # False for student; True for teacher
+path_cluster_num: 0.0008  #0.25; 0.0128(32); 0.0032(8); 0.0008(2);
+
+# Loss options for distill
+distill_logits: True
+distill_feature: True
+temperature: 2.0
+
+# Student logits combination
+combination_type: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_teas: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+combination_type_stus: 'max_confidence' # 'average' 'weighted' 'softmax_average' 'max_confidence'
+
+# Model options
+mode: 'teacher' #'deformpathomic' ->(our) 'teacher' 'student' 'distillation' 'uniteacher'
+attn_dim: 2 # deform
+
+
+# Task for diag2021, grade, subtype
+task_type: "diag2021" #["diag2021", "survival", "grade", "subtype"]
+label_dim: 4 #[4 for "diag2021", 4 for "survival", 3 for "grade", 3 for "subtype"]
+survival_interval: "all" #["uncensored", "all"]
+act_type: 'Sigmoid' # 'LSM'
+
+# Dataset options
+coTraining: True
+external_eval: False #for CPTAC dataset evaluation
+# Evaluate options
+save4roc: False
+printDataSplit: False
+save4visualization: False
